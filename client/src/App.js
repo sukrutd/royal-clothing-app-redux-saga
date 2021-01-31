@@ -1,15 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { connect } from 'react-redux';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import { createStructuredSelector } from 'reselect';
 import { selectCurrentUser } from './redux/user/user.selectors';
 import { checkUserSession } from './redux/user/user.actions';
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import ShopPage from './pages/ShopPage';
-import CheckoutPage from './pages/CheckoutPage';
-import AuthPage from './pages/AuthPage';
+import Spinner from './components/Spinner';
 import './App.scss';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ShopPage = lazy(() => import('./pages/ShopPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
 
 const App = ({ currentUser, checkUserSession }) => {
 	useEffect(() => {
@@ -20,10 +22,16 @@ const App = ({ currentUser, checkUserSession }) => {
 		<Router>
 			<Header />
 			<Switch>
-				<Route exact path='/' component={HomePage} />
-				<Route path='/shop' component={ShopPage} />
-				<Route exact path='/checkout' component={CheckoutPage} />
-				<Route exact path='/signin' render={() => (currentUser ? <Redirect to='/' /> : <AuthPage />)} />
+				<Suspense fallback={<Spinner />}>
+					<Route exact path='/' component={HomePage} />
+					<Route path='/shop' component={ShopPage} />
+					<Route exact path='/checkout' component={CheckoutPage} />
+					<Route
+						exact
+						path='/signin'
+						render={() => (currentUser ? <Redirect to='/' /> : <AuthPage />)}
+					/>
+				</Suspense>
 			</Switch>
 		</Router>
 	);
